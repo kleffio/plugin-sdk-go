@@ -1,0 +1,143 @@
+// plugin-sdk/v1/proto/idp.proto
+//
+// IdentityPlugin gRPC service — all IDP plugins must implement this.
+syntax = "proto3";
+package kleff.plugins.v1;
+option go_package = "github.com/kleffio/plugin-sdk/v1";
+
+import "common.proto";
+
+// IdentityPlugin is the gRPC service all IDP plugins must implement.
+service IdentityPlugin {
+  // Login authenticates a user with username and password.
+  rpc Login(LoginRequest) returns (LoginResponse);
+
+  // Register creates a new user in the identity provider.
+  // Return Error.Code = NOT_SUPPORTED if not implemented.
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+
+  // GetUser retrieves a user by their provider ID.
+  // Return Error.Code = NOT_SUPPORTED if not implemented.
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+
+  // ValidateToken verifies a bearer token and returns its claims.
+  // The platform calls this on every authenticated request.
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+
+  // GetOIDCConfig returns the OIDC parameters the frontend needs to
+  // initialise its OIDC client (authority, client_id, scopes, etc.).
+  rpc GetOIDCConfig(GetOIDCConfigRequest) returns (GetOIDCConfigResponse);
+
+  // RefreshToken exchanges a refresh token for a new token set.
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+
+  // Health returns the plugin's current health status.
+  rpc Health(HealthRequest) returns (HealthResponse);
+}
+
+// ── Token validation ──────────────────────────────────────────────────────────
+
+message ValidateTokenRequest {
+  string token = 1;
+}
+
+message TokenClaims {
+  string          subject = 1;
+  string          email   = 2;
+  repeated string roles   = 3;
+}
+
+message ValidateTokenResponse {
+  oneof result {
+    TokenClaims claims = 1;
+    Error       error  = 2;
+  }
+}
+
+// ── OIDC configuration ────────────────────────────────────────────────────────
+
+message GetOIDCConfigRequest {}
+
+message OIDCConfig {
+  string          authority = 1;
+  string          client_id = 2;
+  string          jwks_uri  = 3;
+  repeated string scopes    = 4;
+}
+
+message GetOIDCConfigResponse {
+  oneof result {
+    OIDCConfig config = 1;
+    Error      error  = 2;
+  }
+}
+
+// ── Token refresh ─────────────────────────────────────────────────────────────
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message RefreshTokenResponse {
+  oneof result {
+    TokenSet token = 1;
+    Error    error = 2;
+  }
+}
+
+// ── Login / Register / GetUser ────────────────────────────────────────────────
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  oneof result {
+    TokenSet token = 1;
+    Error    error = 2;
+  }
+}
+
+message TokenSet {
+  string access_token  = 1;
+  string refresh_token = 2;
+  string id_token      = 3;
+  string token_type    = 4;
+  int64  expires_in    = 5;
+  string scope         = 6;
+}
+
+message RegisterRequest {
+  string username   = 1;
+  string email      = 2;
+  string password   = 3;
+  string first_name = 4;
+  string last_name  = 5;
+}
+
+message RegisterResponse {
+  oneof result {
+    string user_id = 1;
+    Error  error   = 2;
+  }
+}
+
+message GetUserRequest {
+  string user_id = 1;
+}
+
+message GetUserResponse {
+  oneof result {
+    UserInfo user  = 1;
+    Error    error = 2;
+  }
+}
+
+message UserInfo {
+  string user_id    = 1;
+  string email      = 2;
+  string username   = 3;
+  string first_name = 4;
+  string last_name  = 5;
+}

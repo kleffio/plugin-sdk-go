@@ -1,0 +1,61 @@
+// plugin-sdk/v1/proto/common.proto
+//
+// Shared types used by all Kleff plugin gRPC services.
+// Source of truth for the wire contract. Generate Go code with:
+//   protoc --go_out=. --go_opt=paths=source_relative \
+//          --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+//          v1/proto/common.proto v1/proto/idp.proto
+//
+// The Go package ships hand-written gRPC stubs (codec.go, types.go,
+// health.go, idp.go, middleware.go, routes.go, ui.go) that implement the
+// same interface without requiring protoc at build time. Swap in generated
+// code whenever you prefer.
+syntax = "proto3";
+package kleff.plugins.v1;
+option go_package = "github.com/kleffio/plugin-sdk/v1";
+
+// Every plugin must implement PluginHealth.
+// The platform polls Health every 30 seconds and calls GetCapabilities once
+// at registration time to discover which optional services the plugin exposes.
+service PluginHealth {
+  rpc Health(HealthRequest) returns (HealthResponse);
+
+  // GetCapabilities declares which optional extension points this plugin
+  // implements. Return an empty list (not an error) for no extra capabilities.
+  rpc GetCapabilities(GetCapabilitiesRequest) returns (GetCapabilitiesResponse);
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  enum Status {
+    UNKNOWN   = 0;
+    HEALTHY   = 1;
+    DEGRADED  = 2;  // running but some non-critical issue
+    UNHEALTHY = 3;  // not able to serve requests
+  }
+  Status status  = 1;
+  string message = 2; // optional human-readable detail
+}
+
+message GetCapabilitiesRequest {}
+
+message GetCapabilitiesResponse {
+  // Standard capability keys: "identity.provider", "api.middleware",
+  // "ui.manifest", "api.routes". Return empty list for none.
+  repeated string capabilities = 1;
+}
+
+message Error {
+  enum Code {
+    UNKNOWN          = 0;
+    INVALID_ARGUMENT = 1;
+    UNAUTHORIZED     = 2;
+    CONFLICT         = 3; // e.g. user already exists
+    NOT_FOUND        = 4;
+    INTERNAL         = 5;
+    NOT_SUPPORTED    = 6; // plugin does not implement this operation
+  }
+  Code   code    = 1;
+  string message = 2;
+}
