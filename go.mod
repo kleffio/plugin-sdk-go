@@ -1,4 +1,4 @@
-module github.com/kleffio/plugin-sdk
+module github.com/kleffio/plugin-sdk-go
 
 go 1.25.0
 
