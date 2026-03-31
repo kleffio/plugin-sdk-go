@@ -3,7 +3,7 @@
 // IdentityPlugin gRPC service — all IDP plugins must implement this.
 syntax = "proto3";
 package kleff.plugins.v1;
-option go_package = "github.com/kleffio/plugin-sdk/v1";
+option go_package = "github.com/kleffio/plugin-sdk-go/v1";
 
 import "common.proto";
 
