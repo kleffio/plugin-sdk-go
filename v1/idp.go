@@ -22,6 +22,9 @@ type IdentityPluginClient interface {
 	GetOIDCConfig(ctx context.Context, in *GetOIDCConfigRequest, opts ...grpc.CallOption) (*GetOIDCConfigResponse, error)
 	// RefreshToken exchanges a refresh token for a new token set.
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
+	// EnsureAdmin seeds the IDP's admin user and assigns the platform "admin"
+	// role. The platform calls this once after installing an IDP plugin.
+	EnsureAdmin(ctx context.Context, in *EnsureAdminRequest, opts ...grpc.CallOption) (*EnsureAdminResponse, error)
 }
 
 type identityPluginClient struct{ cc grpc.ClientConnInterface }
@@ -86,6 +89,14 @@ func (c *identityPluginClient) RefreshToken(ctx context.Context, in *RefreshToke
 	return out, nil
 }
 
+func (c *identityPluginClient) EnsureAdmin(ctx context.Context, in *EnsureAdminRequest, opts ...grpc.CallOption) (*EnsureAdminResponse, error) {
+	out := new(EnsureAdminResponse)
+	if err := c.cc.Invoke(ctx, "/kleff.plugins.v1.IdentityPlugin/EnsureAdmin", in, out, opts...); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ── IdentityPlugin server ─────────────────────────────────────────────────────
 
 type IdentityPluginServer interface {
@@ -96,6 +107,7 @@ type IdentityPluginServer interface {
 	ValidateToken(context.Context, *ValidateTokenRequest) (*ValidateTokenResponse, error)
 	GetOIDCConfig(context.Context, *GetOIDCConfigRequest) (*GetOIDCConfigResponse, error)
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
+	EnsureAdmin(context.Context, *EnsureAdminRequest) (*EnsureAdminResponse, error)
 }
 
 type UnimplementedIdentityPluginServer struct{}
@@ -121,6 +133,9 @@ func (UnimplementedIdentityPluginServer) GetOIDCConfig(context.Context, *GetOIDC
 func (UnimplementedIdentityPluginServer) RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RefreshToken not implemented")
 }
+func (UnimplementedIdentityPluginServer) EnsureAdmin(context.Context, *EnsureAdminRequest) (*EnsureAdminResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EnsureAdmin not implemented")
+}
 
 func RegisterIdentityPluginServer(s grpc.ServiceRegistrar, srv IdentityPluginServer) {
 	s.RegisterService(&IdentityPlugin_ServiceDesc, srv)
@@ -137,6 +152,7 @@ var IdentityPlugin_ServiceDesc = grpc.ServiceDesc{
 		{MethodName: "ValidateToken", Handler: _IdentityPlugin_ValidateToken_Handler},
 		{MethodName: "GetOIDCConfig", Handler: _IdentityPlugin_GetOIDCConfig_Handler},
 		{MethodName: "RefreshToken", Handler: _IdentityPlugin_RefreshToken_Handler},
+		{MethodName: "EnsureAdmin", Handler: _IdentityPlugin_EnsureAdmin_Handler},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "idp.proto",
@@ -246,3 +262,19 @@ func _IdentityPlugin_RefreshToken_Handler(srv any, ctx context.Context, dec func
 	}
 	return interceptor(ctx, in, info, handler)
 }
+
+func _IdentityPlugin_EnsureAdmin_Handler(srv any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
+	in := new(EnsureAdminRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityPluginServer).EnsureAdmin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{Server: srv, FullMethod: "/kleff.plugins.v1.IdentityPlugin/EnsureAdmin"}
+	handler := func(ctx context.Context, req any) (any, error) {
+		return srv.(IdentityPluginServer).EnsureAdmin(ctx, req.(*EnsureAdminRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
