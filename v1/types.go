@@ -267,3 +267,15 @@ type RefreshTokenResponse struct {
 	Token *TokenSet    `json:"token,omitempty"`
 	Error *PluginError `json:"error,omitempty"`
 }
+
+// ── Admin seeding types ───────────────────────────────────────────────────────
+
+// EnsureAdminRequest is sent by the platform after installing an IDP plugin to
+// trigger admin-user seeding. Each IDP plugin implements this according to its
+// own system (Keycloak realm roles, Authentik groups, etc.).
+type EnsureAdminRequest struct{}
+
+type EnsureAdminResponse struct {
+	Error *PluginError `json:"error,omitempty"`
+}
+
