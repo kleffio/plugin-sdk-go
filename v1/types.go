@@ -130,6 +130,26 @@ type UserInfo struct {
 	LastName  string `json:"last_name,omitempty"`
 }
 
+// ── Layer tag declarations ────────────────────────────────────────────────────
+
+// Layer tags declare which part of the stack a plugin touches.
+// The platform uses these to enforce capability permissions — a plugin may only
+// exercise capabilities that its declared layer tags permit.
+const (
+	// TagFrontend allows ui.manifest. Use for plugins that only contribute UI.
+	TagFrontend = "frontend"
+
+	// TagBackend allows api.middleware and api.routes. Use for plugins that
+	// intercept or own HTTP routes on the platform API.
+	TagBackend = "backend"
+
+	// TagIdentity allows identity.provider. Use for authentication/IDP plugins.
+	TagIdentity = "identity"
+
+	// TagDevOps is reserved for future daemon and Kubernetes capabilities.
+	TagDevOps = "devops"
+)
+
 // ── Capability declarations ───────────────────────────────────────────────────
 
 // Standard capability keys a plugin can declare via GetCapabilities.
