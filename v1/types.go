@@ -72,6 +72,12 @@ type OIDCConfig struct {
 	// OIDC Authorization Code redirect to the IDP. Valid values: "headless"
 	// (default) or "redirect".
 	AuthMode string `json:"auth_mode,omitempty"`
+	// Pre-fetched OIDC endpoint URLs. When set, the frontend passes them as
+	// metadata to oidc-client-ts so it skips the cross-origin discovery fetch.
+	TokenEndpoint         string `json:"token_endpoint,omitempty"`
+	AuthorizationEndpoint string `json:"authorization_endpoint,omitempty"`
+	UserinfoEndpoint      string `json:"userinfo_endpoint,omitempty"`
+	EndSessionEndpoint    string `json:"end_session_endpoint,omitempty"`
 }
 
 type GetOIDCConfigResponse struct {
