@@ -25,6 +25,13 @@ type IdentityPluginClient interface {
 	// EnsureAdmin seeds the IDP's admin user and assigns the platform "admin"
 	// role. The platform calls this once after installing an IDP plugin.
 	EnsureAdmin(ctx context.Context, in *EnsureAdminRequest, opts ...grpc.CallOption) (*EnsureAdminResponse, error)
+	// ChangePassword verifies the current password and sets a new one.
+	// The plugin is responsible for verifying CurrentPassword before applying NewPassword.
+	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordResponse, error)
+	// ListSessions returns all active sessions for a user.
+	ListSessions(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error)
+	// RevokeSession terminates a specific session by ID.
+	RevokeSession(ctx context.Context, in *RevokeSessionRequest, opts ...grpc.CallOption) (*RevokeSessionResponse, error)
 }
 
 type identityPluginClient struct{ cc grpc.ClientConnInterface }
@@ -97,6 +104,30 @@ func (c *identityPluginClient) EnsureAdmin(ctx context.Context, in *EnsureAdminR
 	return out, nil
 }
 
+func (c *identityPluginClient) ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordResponse, error) {
+	out := new(ChangePasswordResponse)
+	if err := c.cc.Invoke(ctx, "/kleff.plugins.v1.IdentityPlugin/ChangePassword", in, out, opts...); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *identityPluginClient) ListSessions(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error) {
+	out := new(ListSessionsResponse)
+	if err := c.cc.Invoke(ctx, "/kleff.plugins.v1.IdentityPlugin/ListSessions", in, out, opts...); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *identityPluginClient) RevokeSession(ctx context.Context, in *RevokeSessionRequest, opts ...grpc.CallOption) (*RevokeSessionResponse, error) {
+	out := new(RevokeSessionResponse)
+	if err := c.cc.Invoke(ctx, "/kleff.plugins.v1.IdentityPlugin/RevokeSession", in, out, opts...); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ── IdentityPlugin server ─────────────────────────────────────────────────────
 
 type IdentityPluginServer interface {
@@ -108,6 +139,9 @@ type IdentityPluginServer interface {
 	GetOIDCConfig(context.Context, *GetOIDCConfigRequest) (*GetOIDCConfigResponse, error)
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
 	EnsureAdmin(context.Context, *EnsureAdminRequest) (*EnsureAdminResponse, error)
+	ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error)
+	ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error)
+	RevokeSession(context.Context, *RevokeSessionRequest) (*RevokeSessionResponse, error)
 }
 
 type UnimplementedIdentityPluginServer struct{}
@@ -136,6 +170,15 @@ func (UnimplementedIdentityPluginServer) RefreshToken(context.Context, *RefreshT
 func (UnimplementedIdentityPluginServer) EnsureAdmin(context.Context, *EnsureAdminRequest) (*EnsureAdminResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EnsureAdmin not implemented")
 }
+func (UnimplementedIdentityPluginServer) ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChangePassword not implemented")
+}
+func (UnimplementedIdentityPluginServer) ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListSessions not implemented")
+}
+func (UnimplementedIdentityPluginServer) RevokeSession(context.Context, *RevokeSessionRequest) (*RevokeSessionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RevokeSession not implemented")
+}
 
 func RegisterIdentityPluginServer(s grpc.ServiceRegistrar, srv IdentityPluginServer) {
 	s.RegisterService(&IdentityPlugin_ServiceDesc, srv)
@@ -153,6 +196,9 @@ var IdentityPlugin_ServiceDesc = grpc.ServiceDesc{
 		{MethodName: "GetOIDCConfig", Handler: _IdentityPlugin_GetOIDCConfig_Handler},
 		{MethodName: "RefreshToken", Handler: _IdentityPlugin_RefreshToken_Handler},
 		{MethodName: "EnsureAdmin", Handler: _IdentityPlugin_EnsureAdmin_Handler},
+		{MethodName: "ChangePassword", Handler: _IdentityPlugin_ChangePassword_Handler},
+		{MethodName: "ListSessions", Handler: _IdentityPlugin_ListSessions_Handler},
+		{MethodName: "RevokeSession", Handler: _IdentityPlugin_RevokeSession_Handler},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "idp.proto",
@@ -274,6 +320,51 @@ func _IdentityPlugin_EnsureAdmin_Handler(srv any, ctx context.Context, dec func(
 	info := &grpc.UnaryServerInfo{Server: srv, FullMethod: "/kleff.plugins.v1.IdentityPlugin/EnsureAdmin"}
 	handler := func(ctx context.Context, req any) (any, error) {
 		return srv.(IdentityPluginServer).EnsureAdmin(ctx, req.(*EnsureAdminRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IdentityPlugin_ChangePassword_Handler(srv any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
+	in := new(ChangePasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityPluginServer).ChangePassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{Server: srv, FullMethod: "/kleff.plugins.v1.IdentityPlugin/ChangePassword"}
+	handler := func(ctx context.Context, req any) (any, error) {
+		return srv.(IdentityPluginServer).ChangePassword(ctx, req.(*ChangePasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IdentityPlugin_ListSessions_Handler(srv any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
+	in := new(ListSessionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityPluginServer).ListSessions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{Server: srv, FullMethod: "/kleff.plugins.v1.IdentityPlugin/ListSessions"}
+	handler := func(ctx context.Context, req any) (any, error) {
+		return srv.(IdentityPluginServer).ListSessions(ctx, req.(*ListSessionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IdentityPlugin_RevokeSession_Handler(srv any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
+	in := new(RevokeSessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityPluginServer).RevokeSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{Server: srv, FullMethod: "/kleff.plugins.v1.IdentityPlugin/RevokeSession"}
+	handler := func(ctx context.Context, req any) (any, error) {
+		return srv.(IdentityPluginServer).RevokeSession(ctx, req.(*RevokeSessionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
