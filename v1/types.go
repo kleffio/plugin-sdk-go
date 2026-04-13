@@ -78,6 +78,10 @@ type OIDCConfig struct {
 	AuthorizationEndpoint string `json:"authorization_endpoint,omitempty"`
 	UserinfoEndpoint      string `json:"userinfo_endpoint,omitempty"`
 	EndSessionEndpoint    string `json:"end_session_endpoint,omitempty"`
+	// InternalTokenEndpoint is the Docker-internal token endpoint URL.
+	// The platform uses it to proxy PKCE token exchanges server-side so the
+	// browser never has to POST cross-origin to the IDP.
+	InternalTokenEndpoint string `json:"internal_token_endpoint,omitempty"`
 }
 
 type GetOIDCConfigResponse struct {
@@ -224,11 +228,91 @@ type SettingsPage struct {
 	IframeURL string `json:"iframe_url,omitempty"` // if set, embed as iframe
 }
 
+// LoginConfig lets an IDP plugin customise the panel's headless login form.
+type LoginConfig struct {
+	// DisableSignupLink hides the "Create account" link on the login page.
+	DisableSignupLink bool `json:"disable_signup_link,omitempty"`
+}
+
+// SignupConfig lets an IDP plugin customise the self-registration page.
+type SignupConfig struct {
+	// Disabled replaces the signup form with a message directing the user to
+	// register through the identity provider directly.
+	Disabled bool `json:"disabled,omitempty"`
+	// HideFirstName omits the first-name field.
+	HideFirstName bool `json:"hide_first_name,omitempty"`
+	// HideLastName omits the last-name field.
+	HideLastName bool `json:"hide_last_name,omitempty"`
+	// HideUsername omits the username field.
+	HideUsername bool `json:"hide_username,omitempty"`
+}
+
+// ProfileSection is a plugin-contributed section rendered on the user settings page.
+type ProfileSection struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description,omitempty"`
+	// IframeURL, if set, embeds the URL in an iframe inside the section card.
+	IframeURL string `json:"iframe_url,omitempty"`
+	// Actions lists the native actions this section supports (e.g. "change_password").
+	// The panel renders built-in Kleff-styled forms for each declared action.
+	Actions []string `json:"actions,omitempty"`
+}
+
+// ── Session types ─────────────────────────────────────────────────────────────
+
+// Session represents one active login session for a user.
+type Session struct {
+	ID          string `json:"id"`
+	IPAddress   string `json:"ip_address,omitempty"`
+	UserAgent   string `json:"user_agent,omitempty"`
+	StartedAt   int64  `json:"started_at,omitempty"` // unix seconds
+	LastAccess  int64  `json:"last_access,omitempty"` // unix seconds
+	Current     bool   `json:"current"`
+}
+
+type ListSessionsRequest struct {
+	UserID           string `json:"user_id"`
+	CurrentSessionID string `json:"current_session_id,omitempty"` // hints which session to mark current
+}
+
+type ListSessionsResponse struct {
+	Sessions []*Session   `json:"sessions,omitempty"`
+	Error    *PluginError `json:"error,omitempty"`
+}
+
+type RevokeSessionRequest struct {
+	UserID    string `json:"user_id"`
+	SessionID string `json:"session_id"`
+}
+
+type RevokeSessionResponse struct {
+	Error *PluginError `json:"error,omitempty"`
+}
+
+// ── Change password types ─────────────────────────────────────────────────────
+
+// ChangePasswordRequest is sent by the platform to change a user's password.
+// UserID is the IDP subject claim. CurrentPassword is verified by the plugin
+// before the new password is applied.
+type ChangePasswordRequest struct {
+	UserID          string `json:"user_id"`
+	CurrentPassword string `json:"current_password"`
+	NewPassword     string `json:"new_password"`
+}
+
+type ChangePasswordResponse struct {
+	Error *PluginError `json:"error,omitempty"`
+}
+
 // UIManifest aggregates all UI contributions from a single plugin.
 type UIManifest struct {
-	PluginID      string          `json:"plugin_id"`
-	NavItems      []*NavItem      `json:"nav_items,omitempty"`
-	SettingsPages []*SettingsPage `json:"settings_pages,omitempty"`
+	PluginID        string            `json:"plugin_id"`
+	NavItems        []*NavItem        `json:"nav_items,omitempty"`
+	SettingsPages   []*SettingsPage   `json:"settings_pages,omitempty"`
+	LoginConfig     *LoginConfig      `json:"login_config,omitempty"`
+	SignupConfig    *SignupConfig     `json:"signup_config,omitempty"`
+	ProfileSections []*ProfileSection `json:"profile_sections,omitempty"`
 }
 
 type GetUIManifestRequest struct{}
