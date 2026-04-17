@@ -52,9 +52,10 @@ type ValidateTokenResponse struct {
 
 // TokenClaims carries the verified identity extracted from a token.
 type TokenClaims struct {
-	Subject string   `json:"subject"`
-	Email   string   `json:"email,omitempty"`
-	Roles   []string `json:"roles,omitempty"`
+	Subject  string   `json:"subject"`
+	Username string   `json:"username,omitempty"`
+	Email    string   `json:"email,omitempty"`
+	Roles    []string `json:"roles,omitempty"`
 }
 
 // ── OIDC config types ─────────────────────────────────────────────────────────

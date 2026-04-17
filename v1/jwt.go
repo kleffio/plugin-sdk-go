@@ -18,6 +18,7 @@ import (
 // JWTClaims holds the verified identity extracted from a validated JWT.
 type JWTClaims struct {
 	Subject   string
+	Username  string
 	Email     string
 	Roles     []string
 	// SessionID is the value of the "sid" claim, if present.
@@ -98,12 +99,13 @@ func (v *JWTValidator) ValidateToken(ctx context.Context, rawToken string) (*JWT
 	}
 
 	var claims struct {
-		Sub         string   `json:"sub"`
-		Email       string   `json:"email"`
-		Exp         int64    `json:"exp"`
-		Sid         string   `json:"sid"`
-		Roles       []string `json:"roles"`
-		RealmAccess struct {
+		Sub               string   `json:"sub"`
+		Email             string   `json:"email"`
+		PreferredUsername string   `json:"preferred_username"`
+		Exp               int64    `json:"exp"`
+		Sid               string   `json:"sid"`
+		Roles             []string `json:"roles"`
+		RealmAccess       struct {
 			Roles []string `json:"roles"`
 		} `json:"realm_access"`
 	}
@@ -127,6 +129,7 @@ func (v *JWTValidator) ValidateToken(ctx context.Context, rawToken string) (*JWT
 	roles := append(claims.Roles, claims.RealmAccess.Roles...)
 	return &JWTClaims{
 		Subject:   claims.Sub,
+		Username:  claims.PreferredUsername,
 		Email:     claims.Email,
 		Roles:     roles,
 		SessionID: claims.Sid,
