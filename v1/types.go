@@ -267,8 +267,9 @@ type Session struct {
 	ID          string `json:"id"`
 	IPAddress   string `json:"ip_address,omitempty"`
 	UserAgent   string `json:"user_agent,omitempty"`
-	StartedAt   int64  `json:"started_at,omitempty"` // unix seconds
+	StartedAt   int64  `json:"started_at,omitempty"`  // unix seconds
 	LastAccess  int64  `json:"last_access,omitempty"` // unix seconds
+	ExpiresAt   int64  `json:"expires_at,omitempty"`  // unix seconds; 0 = IDP did not report an expiry
 	Current     bool   `json:"current"`
 }
 
