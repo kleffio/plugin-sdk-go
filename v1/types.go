@@ -392,6 +392,7 @@ type RefreshTokenResponse struct {
 // MetricSample carries a single resource-usage observation for one workload.
 type MetricSample struct {
 	WorkloadID    string  `json:"workload_id"`
+	WorkloadName  string  `json:"workload_name,omitempty"`
 	NodeID        string  `json:"node_id"`
 	OrgID         string  `json:"org_id"`
 	ProjectID     string  `json:"project_id"`
