@@ -182,6 +182,14 @@ const (
 	// The platform uses this to determine whether auth is available, exposing
 	// GET /api/v1/auth/config with enabled:false when no such plugin is active.
 	CapabilityIdentityProvider = "identity.provider"
+
+	// CapabilityMonitoringFramework: plugin is a monitoring framework (time-series
+	// storage + query). The platform forwards workload metric samples to it via IngestMetrics.
+	CapabilityMonitoringFramework = "monitoring.framework"
+
+	// CapabilityMonitoringProvider: plugin is a metrics collector (e.g. cAdvisor,
+	// node_exporter, Promtail). Reserved for future use.
+	CapabilityMonitoringProvider = "monitoring.provider"
 )
 
 type GetCapabilitiesRequest struct{}
@@ -377,6 +385,37 @@ type RefreshTokenRequest struct {
 type RefreshTokenResponse struct {
 	Token *TokenSet    `json:"token,omitempty"`
 	Error *PluginError `json:"error,omitempty"`
+}
+
+// ── Observability types ───────────────────────────────────────────────────────
+
+// MetricSample carries a single resource-usage observation for one workload.
+type MetricSample struct {
+	WorkloadID    string  `json:"workload_id"`
+	NodeID        string  `json:"node_id"`
+	OrgID         string  `json:"org_id"`
+	ProjectID     string  `json:"project_id"`
+	Timestamp     int64   `json:"timestamp"` // unix seconds
+	CPUMillicores int64   `json:"cpu_millicores"`
+	MemoryMB      int64   `json:"memory_mb"`
+	NetworkRxMB   float64 `json:"network_rx_mb"`
+	NetworkTxMB   float64 `json:"network_tx_mb"`
+	DiskReadMB    float64 `json:"disk_read_mb"`
+	DiskWriteMB   float64 `json:"disk_write_mb"`
+}
+
+type IngestMetricsRequest struct {
+	Sample *MetricSample `json:"sample"`
+}
+
+type IngestMetricsResponse struct {
+	Error *PluginError `json:"error,omitempty"`
+}
+
+type SupportsBillingMetricsRequest struct{}
+
+type SupportsBillingMetricsResponse struct {
+	Supported bool `json:"supported"`
 }
 
 // ── Admin seeding types ───────────────────────────────────────────────────────
