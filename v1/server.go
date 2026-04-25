@@ -50,7 +50,10 @@ func (b *BasePlugin) WithLogger(l *slog.Logger) *BasePlugin {
 
 // Health implements PluginHealthServer.
 func (b *BasePlugin) Health(_ context.Context, _ *HealthRequest) (*HealthResponse, error) {
-	return &HealthResponse{Status: HealthStatusHealthy, Message: b.name + " " + b.version}, nil
+	return &HealthResponse{
+		Status:  HealthResponse_HEALTHY,
+		Message: b.name + " " + b.version,
+	}, nil
 }
 
 // GetCapabilities implements PluginHealthServer.

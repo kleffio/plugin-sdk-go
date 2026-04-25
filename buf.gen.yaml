@@ -1,0 +1,10 @@
+version: v2
+inputs:
+  - directory: contracts/proto
+plugins:
+  - local: protoc-gen-go
+    out: v1
+    opt: paths=source_relative
+  - local: protoc-gen-go-grpc
+    out: v1
+    opt: paths=source_relative
