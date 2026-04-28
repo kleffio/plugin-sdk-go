@@ -183,13 +183,38 @@ const (
 	// GET /api/v1/auth/config with enabled:false when no such plugin is active.
 	CapabilityIdentityProvider = "identity.provider"
 
-	// CapabilityMonitoringFramework: plugin is a monitoring framework (time-series
-	// storage + query). The platform forwards workload metric samples to it via IngestMetrics.
-	CapabilityMonitoringFramework = "monitoring.framework"
+	// CapabilityMonitoringSource: plugin is a telemetry source/exporter (e.g. cAdvisor,
+	// node_exporter, postgres-exporter). Exposes scrape endpoints consumed by a collector.
+	CapabilityMonitoringSource = "monitoring.source"
 
-	// CapabilityMonitoringProvider: plugin is a metrics collector (e.g. cAdvisor,
-	// node_exporter, Promtail). Reserved for future use.
-	CapabilityMonitoringProvider = "monitoring.provider"
+	// CapabilityMonitoringCollector: plugin scrapes, receives, transforms, and forwards
+	// telemetry to one or more backends (e.g. Grafana Alloy, OTel Collector, Prometheus scraper).
+	CapabilityMonitoringCollector = "monitoring.collector"
+
+	// CapabilityMonitoringMetrics: plugin stores and queries metrics
+	// (e.g. Prometheus, VictoriaMetrics, Grafana Mimir, InfluxDB).
+	// The platform forwards workload metric samples to it via IngestMetrics.
+	CapabilityMonitoringMetrics = "monitoring.metrics"
+
+	// CapabilityMonitoringLogs: plugin stores and queries logs
+	// (e.g. Loki, Elasticsearch, Splunk).
+	CapabilityMonitoringLogs = "monitoring.logs"
+
+	// CapabilityMonitoringTraces: plugin stores and queries traces
+	// (e.g. Tempo, Jaeger, Datadog APM).
+	CapabilityMonitoringTraces = "monitoring.traces"
+
+	// CapabilityMonitoringVisualizer: plugin provides dashboards and query UI
+	// (e.g. Grafana, Kibana, Datadog UI). May be managed by Kleff or external.
+	CapabilityMonitoringVisualizer = "monitoring.visualizer"
+
+	// CapabilityMonitoringAlerting: plugin evaluates alert rules and routes events
+	// (e.g. Alertmanager, Grafana Alerting). NOT for notification targets.
+	CapabilityMonitoringAlerting = "monitoring.alerting"
+
+	// CapabilityMonitoringNotification: plugin receives alert events from a rule engine
+	// and forwards to humans (e.g. Slack, PagerDuty, webhook).
+	CapabilityMonitoringNotification = "monitoring.notification"
 )
 
 type GetCapabilitiesRequest struct{}
@@ -428,6 +453,75 @@ type SupportsBillingMetricsResponse struct {
 type EnsureAdminRequest struct{}
 
 type EnsureAdminResponse struct {
+	Error *PluginError `json:"error,omitempty"`
+}
+
+// ── Scrape target types ───────────────────────────────────────────────────────
+
+// ScrapeTarget describes one Prometheus-compatible scrape endpoint exposed by a
+// monitoring.source plugin. The platform aggregates these into an HTTP SD response.
+type ScrapeTarget struct {
+	// Address is host:port of the scrape endpoint, e.g. "node-exporter:9100".
+	Address string `json:"address"`
+	// MetricsPath is the HTTP path; defaults to "/metrics".
+	MetricsPath string `json:"metrics_path,omitempty"`
+	// Labels are extra labels attached to all scraped metrics.
+	Labels map[string]string `json:"labels,omitempty"`
+	// Scheme is "http" or "https"; defaults to "http".
+	Scheme string `json:"scheme,omitempty"`
+}
+
+type GetScrapeTargetsRequest struct{}
+
+type GetScrapeTargetsResponse struct {
+	Targets []*ScrapeTarget `json:"targets"`
+	Error   *PluginError    `json:"error,omitempty"`
+}
+
+// ── Log ingest types ──────────────────────────────────────────────────────────
+
+// LogEntry carries a single log line forwarded to a monitoring.logs plugin.
+type LogEntry struct {
+	WorkloadID   string            `json:"workload_id"`
+	WorkloadName string            `json:"workload_name,omitempty"`
+	OrgID        string            `json:"org_id"`
+	ProjectID    string            `json:"project_id"`
+	Timestamp    int64             `json:"timestamp"` // unix nanoseconds
+	Level        string            `json:"level,omitempty"`
+	Message      string            `json:"message"`
+	Labels       map[string]string `json:"labels,omitempty"`
+}
+
+type IngestLogRequest struct {
+	Entry *LogEntry `json:"entry"`
+}
+
+type IngestLogResponse struct {
+	Error *PluginError `json:"error,omitempty"`
+}
+
+// ── Trace ingest types ────────────────────────────────────────────────────────
+
+// Span carries a single distributed trace span forwarded to a monitoring.traces plugin.
+type Span struct {
+	TraceID      string            `json:"trace_id"`
+	SpanID       string            `json:"span_id"`
+	ParentSpanID string            `json:"parent_span_id,omitempty"`
+	WorkloadID   string            `json:"workload_id"`
+	OrgID        string            `json:"org_id"`
+	ProjectID    string            `json:"project_id"`
+	Name         string            `json:"name"`
+	StartTimeNs  int64             `json:"start_time_ns"` // unix nanoseconds
+	EndTimeNs    int64             `json:"end_time_ns"`
+	Status       string            `json:"status,omitempty"` // "ok", "error", "unset"
+	Attributes   map[string]string `json:"attributes,omitempty"`
+}
+
+type IngestSpanRequest struct {
+	Span *Span `json:"span"`
+}
+
+type IngestSpanResponse struct {
 	Error *PluginError `json:"error,omitempty"`
 }
 
