@@ -2,11 +2,14 @@ package pluginsv1
 
 // Standard capability keys a plugin can declare via GetCapabilities.
 const (
-	CapabilityAPIMiddleware     = "api.middleware"
-	CapabilityUIManifest        = "ui.manifest"
-	CapabilityAPIRoutes         = "api.routes"
-	CapabilityIdentityProvider  = "identity.provider"
-	CapabilityIdentityFramework = "identity.framework"
+	CapabilityAPIMiddleware       = "api.middleware"
+	CapabilityUIManifest          = "ui.manifest"
+	CapabilityAPIRoutes           = "api.routes"
+	CapabilityIdentityProvider    = "identity.provider"
+	CapabilityIdentityFramework   = "identity.framework"
+	CapabilityMonitoringMetrics   = "monitoring.metrics"
+	CapabilityMonitoringLogs      = "monitoring.logs"
+	CapabilityMonitoringTraces    = "monitoring.traces"
 )
 
 // Layer tag declarations for plugin manifests.
@@ -15,6 +18,17 @@ const (
 	TagBackend  = "backend"
 	TagIdentity = "identity"
 	TagDevOps   = "devops"
+)
+
+// HealthStatus aliases the generated HealthResponse_Status enum for backward compatibility.
+type HealthStatus = HealthResponse_Status
+
+// HealthStatus constants matching the generated HealthResponse_Status enum values.
+const (
+	HealthStatusUnknown  HealthStatus = HealthResponse_UNKNOWN
+	HealthStatusHealthy  HealthStatus = HealthResponse_HEALTHY
+	HealthStatusDegraded HealthStatus = HealthResponse_DEGRADED
+	HealthStatusUnhealthy HealthStatus = HealthResponse_UNHEALTHY
 )
 
 // ErrorCode aliases the generated Error_Code enum for backward compatibility.
