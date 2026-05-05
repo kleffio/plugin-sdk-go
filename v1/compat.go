@@ -1,13 +1,43 @@
 package pluginsv1
 
+import "google.golang.org/grpc"
+
 // Standard capability keys a plugin can declare via GetCapabilities.
 const (
-	CapabilityAPIMiddleware     = "api.middleware"
-	CapabilityUIManifest        = "ui.manifest"
-	CapabilityAPIRoutes         = "api.routes"
-	CapabilityIdentityProvider  = "identity.provider"
-	CapabilityIdentityFramework = "identity.framework"
+	CapabilityAPIMiddleware       = "api.middleware"
+	CapabilityUIManifest          = "ui.manifest"
+	CapabilityAPIRoutes           = "api.routes"
+	CapabilityIdentityProvider    = "identity.provider"
+	CapabilityIdentityFramework   = "identity.framework"
+	CapabilityMonitoringMetrics   = "monitoring.metrics"
+	CapabilityMonitoringLogs      = "monitoring.logs"
+	CapabilityMonitoringTraces    = "monitoring.traces"
+	CapabilityMonitoringSource    = "monitoring.source"
 )
+
+// ── Backward-compatible client type aliases ──────────────────────────────────
+// These names were used before the proto-gen overhaul renamed the services.
+
+type PluginMiddlewareClient = APIMiddlewareClient
+type PluginUIClient = UIManifestServiceClient
+type PluginHTTPClient = APIRoutesClient
+
+// HandleHTTPRequest and HandleHTTPResponse are the old names for the route
+// handler request/response types, now generated as HandleRequest/HandleResponse.
+type HandleHTTPRequest = HandleRequest
+type HandleHTTPResponse = HandleResponse
+
+// NewPluginMiddlewareClient, NewPluginUIClient, NewPluginHTTPClient are the old
+// constructor names; they forward to the generated constructors.
+func NewPluginMiddlewareClient(cc grpc.ClientConnInterface) PluginMiddlewareClient {
+	return NewAPIMiddlewareClient(cc)
+}
+func NewPluginUIClient(cc grpc.ClientConnInterface) PluginUIClient {
+	return NewUIManifestServiceClient(cc)
+}
+func NewPluginHTTPClient(cc grpc.ClientConnInterface) PluginHTTPClient {
+	return NewAPIRoutesClient(cc)
+}
 
 // Layer tag declarations for plugin manifests.
 const (
@@ -15,6 +45,17 @@ const (
 	TagBackend  = "backend"
 	TagIdentity = "identity"
 	TagDevOps   = "devops"
+)
+
+// HealthStatus aliases the generated HealthResponse_Status enum for backward compatibility.
+type HealthStatus = HealthResponse_Status
+
+// HealthStatus constants matching the generated HealthResponse_Status enum values.
+const (
+	HealthStatusUnknown  HealthStatus = HealthResponse_UNKNOWN
+	HealthStatusHealthy  HealthStatus = HealthResponse_HEALTHY
+	HealthStatusDegraded HealthStatus = HealthResponse_DEGRADED
+	HealthStatusUnhealthy HealthStatus = HealthResponse_UNHEALTHY
 )
 
 // ErrorCode aliases the generated Error_Code enum for backward compatibility.
