@@ -36,8 +36,10 @@ type SupportsBillingMetricsResponse struct {
 
 // ScrapeTarget describes a Prometheus-compatible scrape endpoint.
 type ScrapeTarget struct {
-	Address string
-	Labels  map[string]string
+	Address     string
+	MetricsPath string
+	Scheme      string
+	Labels      map[string]string
 }
 
 // GetScrapeTargetsRequest is the request for GetScrapeTargets.

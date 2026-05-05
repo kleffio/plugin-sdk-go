@@ -23,6 +23,7 @@ func NewMonitoringFrameworkClient(cc grpc.ClientConnInterface) MonitoringFramewo
 
 func (c *monitoringFrameworkClient) IngestMetrics(ctx context.Context, in *IngestMetricsRequest, opts ...grpc.CallOption) (*IngestMetricsResponse, error) {
 	out := new(IngestMetricsResponse)
+	opts = append([]grpc.CallOption{grpc.CallContentSubtype("json")}, opts...)
 	if err := c.cc.Invoke(ctx, "/kleff.plugins.v1.MonitoringFramework/IngestMetrics", in, out, opts...); err != nil {
 		return nil, err
 	}
@@ -31,6 +32,7 @@ func (c *monitoringFrameworkClient) IngestMetrics(ctx context.Context, in *Inges
 
 func (c *monitoringFrameworkClient) SupportsBillingMetrics(ctx context.Context, in *SupportsBillingMetricsRequest, opts ...grpc.CallOption) (*SupportsBillingMetricsResponse, error) {
 	out := new(SupportsBillingMetricsResponse)
+	opts = append([]grpc.CallOption{grpc.CallContentSubtype("json")}, opts...)
 	if err := c.cc.Invoke(ctx, "/kleff.plugins.v1.MonitoringFramework/SupportsBillingMetrics", in, out, opts...); err != nil {
 		return nil, err
 	}
@@ -119,6 +121,7 @@ func NewMonitoringSourceClient(cc grpc.ClientConnInterface) MonitoringSourceClie
 
 func (c *monitoringSourceClient) GetScrapeTargets(ctx context.Context, in *GetScrapeTargetsRequest, opts ...grpc.CallOption) (*GetScrapeTargetsResponse, error) {
 	out := new(GetScrapeTargetsResponse)
+	opts = append([]grpc.CallOption{grpc.CallContentSubtype("json")}, opts...)
 	if err := c.cc.Invoke(ctx, "/kleff.plugins.v1.MonitoringSource/GetScrapeTargets", in, out, opts...); err != nil {
 		return nil, err
 	}
@@ -183,6 +186,7 @@ func NewMonitoringLogsClient(cc grpc.ClientConnInterface) MonitoringLogsClient {
 
 func (c *monitoringLogsClient) IngestLog(ctx context.Context, in *IngestLogRequest, opts ...grpc.CallOption) (*IngestLogResponse, error) {
 	out := new(IngestLogResponse)
+	opts = append([]grpc.CallOption{grpc.CallContentSubtype("json")}, opts...)
 	if err := c.cc.Invoke(ctx, "/kleff.plugins.v1.MonitoringLogs/IngestLog", in, out, opts...); err != nil {
 		return nil, err
 	}
@@ -247,6 +251,7 @@ func NewMonitoringTracesClient(cc grpc.ClientConnInterface) MonitoringTracesClie
 
 func (c *monitoringTracesClient) IngestSpan(ctx context.Context, in *IngestSpanRequest, opts ...grpc.CallOption) (*IngestSpanResponse, error) {
 	out := new(IngestSpanResponse)
+	opts = append([]grpc.CallOption{grpc.CallContentSubtype("json")}, opts...)
 	if err := c.cc.Invoke(ctx, "/kleff.plugins.v1.MonitoringTraces/IngestSpan", in, out, opts...); err != nil {
 		return nil, err
 	}
